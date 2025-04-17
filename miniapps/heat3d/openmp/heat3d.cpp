@@ -8,7 +8,18 @@
 #include "IO.hpp"
 #include "Timestep.hpp"
 
+# include "energy.h"
+
 int main(int argc, char *argv[]) {
+
+  #pragma omp target
+  {
+      if (!omp_is_initial_device())
+          printf("Hello world from accelerator.\n");
+      else
+          printf("Hello world from host.\n");
+  }
+
   Parser parser(argc, argv);
   auto shape = parser.shape_;
   int nbiter = parser.nbiter_;
@@ -25,6 +36,8 @@ int main(int argc, char *argv[]) {
   RealView3D u, un;
 
   initialize(conf, x, y, z, u, un);
+  power_init();
+  power_start();
 
   // Main loop
   timers[Total]->begin();
@@ -42,9 +55,15 @@ int main(int argc, char *argv[]) {
   finalize(conf, time, x, y, z, u, un);
   
   // Measure performance
-  performance(conf, timers[Total]->seconds());
+  double Gflops = performance(conf, timers[Total]->seconds());
+  double P = power_stop();
+  printf("Gflop/s/watt = %lf\n", Gflops/P);
+  
   printTimers(timers);
   freeTimers(timers);
-  
+
+  power_deinit();
+
+
   return 0;
 }

@@ -15,7 +15,7 @@ void finalize(Config &conf, float64 time,
               RealView3D &u, RealView3D &un
              );
 
-void performance(Config &conf, double seconds);
+double performance(Config &conf, double seconds);
 
 void initialize(Config &conf,
                 RealView1D &x, RealView1D &y, RealView1D &z,
@@ -44,7 +44,7 @@ void initialize(Config &conf,
         y(iy) = ytmp;
         z(iz) = ztmp;
         u(ix, iy, iz) = conf.umax
-          * cos(xtmp / conf.Lx * 2.0 * M_PI + ytmp / conf.Ly * 2.0 * M_PI + ztmp / conf.Lz * 2.0 * M_PI); 
+          * cos(xtmp / conf.Lx * 2.0 * M_PI + ytmp / conf.Ly * 2.0 * M_PI + ztmp / conf.Lz * 2.0 * M_PI);
       }
     }
   }
@@ -63,7 +63,7 @@ void finalize(Config &conf, float64 time,
   const int nx = conf.nx;
   const int ny = conf.ny;
   const int nz = conf.nz;
-  
+
   for(int iz=0; iz<nz; iz++) {
     for(int iy=0; iy<ny; iy++) {
       for(int ix=0; ix<nx; ix++) {
@@ -72,8 +72,8 @@ void finalize(Config &conf, float64 time,
         const real_type ztmp = z(iz);
 
         const real_type u_init = conf.umax
-          * cos(xtmp / conf.Lx * 2.0 * M_PI + ytmp / conf.Ly * 2.0 * M_PI + ztmp / conf.Lz * 2.0 * M_PI); 
-        
+          * cos(xtmp / conf.Lx * 2.0 * M_PI + ytmp / conf.Ly * 2.0 * M_PI + ztmp / conf.Lz * 2.0 * M_PI);
+
         un(ix, iy, iz) = u_init * exp(-conf.Kappa * (pow((2.0 * M_PI / conf.Lx), 2) + pow((2.0 * M_PI / conf.Ly), 2) + pow((2.0 * M_PI / conf.Lz), 2) ) * time);
       }
     }
@@ -98,7 +98,7 @@ void finalize(Config &conf, float64 time,
   std::cout << "L2_norm: " << sqrt(L2_norm) << std::endl;
 }
 
-void performance(Config &conf, double seconds) {
+double performance(Config &conf, double seconds) {
   using real_type = RealView3D::value_type;
   const int n = conf.nx * conf.ny * conf.nz;
   double GBytes = static_cast<double>(n) * static_cast<double>(conf.nbiter) * 2 * sizeof(real_type) / 1.e9;
@@ -118,6 +118,8 @@ void performance(Config &conf, double seconds) {
   std::cout << "Elapsed time: " << seconds << " [s]" << std::endl;
   std::cout << "Bandwidth: " << GBytes / seconds << " [GB/s]" << std::endl;
   std::cout << "Flops: " << GFlops / seconds << " [GFlops]" << std::endl;
+
+    return GFlops/seconds;
 }
 
 #endif
